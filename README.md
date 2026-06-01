@@ -1,3 +1,7 @@
+Simple 3d renderer that works faster than unity. Test outcomes are below
+Both tested in same PC(used 3080 as GPU)
+
+
 | (Polygons) | TheRenderer (FPS) | Unity (FPS) | difference |
 | :--- | :---: | :---: | :---: |
 | **230.4 K** | **2850** | 450 | **~6.3x Faster** |
