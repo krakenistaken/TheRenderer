@@ -1,7 +1,9 @@
 <Solution>
   <Configurations>
     <Platform Name="x64" />
-    <Platform Name="x86" />
   </Configurations>
-  <Project Path="THErenderer/THErenderer.vcxproj" Id="0d4fbb72-60d8-44a9-ae8e-a5b60ab756d0" />
+  <Project Path="THErendererLib/THErendererLib.vcxproj" Id="A1B2C3D4-1234-5678-9ABC-DEF012345678" />
+  <Project Path="BenchmarkDemo/BenchmarkDemo.vcxproj" Id="B2C3D4E5-2345-6789-ABCD-EF0123456789">
+    <Dependency Project="THErendererLib/THErendererLib.vcxproj" />
+  </Project>
 </Solution>

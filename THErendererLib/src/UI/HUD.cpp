@@ -129,7 +129,7 @@ void HUD::renderText(const std::string& text, float x, float y, float scale, glm
     glBindVertexArray(0);
 }
 
-void HUD::render(float fps, uint32_t polyCount, int currentScene) {
+void HUD::beginRender() {
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
     glEnable(GL_BLEND);
@@ -142,26 +142,9 @@ void HUD::render(float fps, uint32_t polyCount, int currentScene) {
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, fontTexture);
+}
 
-    char buf[64];
-    snprintf(buf, sizeof(buf), "FPS: %.0f", fps);
-    renderText(buf, 12.0f, 12.0f, 2.5f, glm::vec3(0.1f, 1.0f, 0.4f));
-
-    snprintf(buf, sizeof(buf), "Polys: %u", polyCount);
-    renderText(buf, 12.0f, 38.0f, 2.5f, glm::vec3(0.1f, 1.0f, 0.4f));
-
-    // Render Scene UI
-    float rightEdge = (float)screenWidth;
-    float startX = rightEdge - 420.0f;
-    
-    renderText("<", startX, 20.0f, 3.0f, glm::vec3(1.0f, 0.5f, 0.5f));
-    char sceneText[64];
-    const int sceneCounts[] = {0, 250, 1000, 1500, 2000, 3000, 4000, 5000, 7500, 10000, 15000, 20000, 30000, 50000, 75000, 100000, 125000, 150000, 175000, 200000, 250000, 300000, 350000, 400000, 450000, 500000, 750000, 1000000, 1500000, 10000};
-    int count = (currentScene >= 1 && currentScene <= 29) ? sceneCounts[currentScene] : 0;
-    snprintf(sceneText, sizeof(sceneText), "SCENE %d (%d objs)", currentScene, count);
-    renderText(sceneText, startX + 50.0f, 20.0f, 2.0f, glm::vec3(1.0f));
-    renderText(">", startX + 370.0f, 20.0f, 3.0f, glm::vec3(1.0f, 0.5f, 0.5f));
-
+void HUD::endRender() {
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);

@@ -10,8 +10,9 @@ public:
     ~HUD();
 
     bool init(int screenWidth, int screenHeight);
-    void render(float fps, uint32_t polyCount, int currentScene);
+    void beginRender();
     void renderText(const std::string& text, float x, float y, float scale = 1.0f, glm::vec3 color = glm::vec3(1.0f));
+    void endRender();
     void updateScreenSize(int width, int height);
     void cleanup();
 

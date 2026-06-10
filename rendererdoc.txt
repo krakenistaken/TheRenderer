@@ -1,0 +1,107 @@
+THErenderer - API Documentation & Usage Guide
+=============================================
+
+THErenderer is a high-performance, hardware-instanced OpenGL 3.3 rendering library written in C++20. It's designed for simulations and visualizations that require rendering massive amounts of geometry (tested up to 1.5 million objects) with minimal CPU overhead.
+
+How Hardware Instancing Works:
+------------------------------
+Traditional rendering calls `glDrawElements` once per object. With 100,000 objects, that's 100,000 CPU->GPU round trips per frame. THErenderer groups objects by their mesh and texture, packs all transform matrices into a single buffer, and uses `glDrawElementsInstanced` to draw all instances in a single draw call. This drastically reduces CPU overhead.
+
+How to Use the Engine
+=====================
+
+To use THErenderer in your own C++ project, simply include the umbrella header:
+#include <THErenderer.h>
+
+Then, create a class that inherits from `Application`. The engine automatically handles window creation, OpenGL context, frame timing, and the core render loop. You only need to override three virtual methods:
+
+1. `onInit()`: Called once when the app starts. Load your assets here.
+2. `onUpdate(float dt)`: Called every frame. Put your simulation logic here.
+3. `onRender()`: Called every frame. Use this to draw 2D text overlays (like FPS or your own custom UI) over the 3D scene.
+
+Example Boilerplate:
+--------------------
+class MySimulation : public Application {
+    Mesh myMesh;
+    Texture myTex;
+
+    void onInit() override {
+        // 1. Load an OBJ file
+        std::vector<Vertex> verts;
+        std::vector<uint32_t> inds;
+        OBJLoader::load("assets/model.obj", verts, inds);
+        myMesh.upload(verts, inds);
+        
+        // 2. Load a Texture
+        myTex.loadFromFile("assets/texture.png");
+
+        // 3. Add instances to the Scene
+        glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
+        scene.addInstance(&myMesh, &myTex, transform);
+        
+        // 4. Finalize the scene for instanced rendering
+        scene.prepareInstancing();
+    }
+
+    void onUpdate(float dt) override {
+        // Handle input, move objects, etc.
+    }
+
+    void onRender() override {
+        // Draw HUD Text Overlay
+        hud.beginRender();
+        hud.renderText("Hello World!", 20.0f, 20.0f, 2.0f, glm::vec3(1.0f));
+        hud.endRender();
+    }
+};
+
+int main() {
+    MySimulation app;
+    return app.run(1280, 720, "My App Window Title") ? 0 : -1;
+}
+
+Core Subsystems & Functions
+===========================
+
+1. Application (Base Class)
+---------------------------
+Your subclass inherits several protected engine variables:
+- `window` (Window): Access the GLFW window and input state.
+- `scene` (Scene): The 3D scene graph and instance manager.
+- `hud` (HUD): The 2D text rendering system.
+- `renderer` (Renderer): The core OpenGL state wrapper.
+- `timer` (Timer): Engine time tracker.
+
+Helper Methods:
+- `float getFPS()`: Returns current frames per second.
+- `float getDeltaTime()`: Returns seconds elapsed since last frame.
+- `int getWidth()` / `getHeight()`: Returns window dimensions.
+
+2. Scene Management (Scene)
+---------------------------
+The `Scene` class holds all your 3D objects and the camera.
+- `scene.clear()`: Empties the scene of all objects.
+- `scene.addInstance(Mesh* mesh, Texture* tex, const glm::mat4& transform)`: Adds an object to the scene.
+- `scene.prepareInstancing()`: MUST be called after you finish adding instances. It uploads all transformation matrices to the GPU.
+
+3. Asset Loading (OBJLoader, Texture, Mesh)
+-------------------------------------------
+- `OBJLoader::load(filepath, outVerts, outIndices)`: Parses a .obj file.
+- `OBJLoader::generateTorus(...)`: Procedurally generates a torus model.
+- `OBJLoader::generateIcosphere(...)`: Procedurally generates an icosphere model.
+- `mesh.upload(verts, indices)`: Sends the loaded vertex data to the GPU.
+- `tex.loadFromFile(filepath)`: Loads a .png/.jpg file into a mipmapped OpenGL texture.
+
+4. 2D HUD / UI Rendering (HUD)
+------------------------------
+Used to draw text overlays (like FPS or custom UI) on top of the 3D scene in `onRender()`.
+- `hud.beginRender()`: Sets up the OpenGL blend states and orthographic projection for 2D rendering. Must be called first.
+- `hud.renderText(text, x, y, scale, color)`: Draws a string at screen coordinates (x, y). Scale is a multiplier for the 8x8 bitmap font. Color is a glm::vec3 (R, G, B).
+- `hud.endRender()`: Restores the 3D OpenGL states (depth testing, culling). Must be called last.
+
+5. Input (Window)
+-----------------
+The `window` object provides methods to read keyboard/mouse input during `onUpdate()`.
+- `window.isKeyPressed(int key)`: Returns true if the GLFW key is currently pressed (e.g., GLFW_KEY_W).
+- `window.isMouseButtonPressed(int button)`: Returns true if a mouse button is pressed (e.g., GLFW_MOUSE_BUTTON_LEFT).
+- `window.getMousePos(double& x, double& y)`: Retrieves the current cursor coordinates.
